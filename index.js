@@ -1,32 +1,12 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const client = require('./db');
 const createDatabaseIfNotExists = require('./admin-db');
 
 const app = express();
 
-// Middleware to set CORS headers
-app.use((req, res, next) => {
-  // Allow all origins
-  res.setHeader('Access-Control-Allow-Origin', '*');
-
-  // Allow specific methods (GET, POST, PUT, DELETE, etc.)
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-
-  // Allow specific headers
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  // Allow credentials if necessary (optional, but typically required for cookies)
-  // res.setHeader('Access-Control-Allow-Credentials', true);
-
-  // If the request is OPTIONS (preflight request), send an empty response
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204); // No Content
-  }
-
-  // Continue to the next middleware or route handler
-  next();
-});
+app.use(cors());
 
 app.use(express.json());
 
