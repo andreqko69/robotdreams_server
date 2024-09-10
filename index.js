@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const db = require('./db');
+const client = require('./db');
+const createDatabaseIfNotExists = require('./admin-db');
 
 const app = express();
 
@@ -33,7 +34,7 @@ app.use(express.json());
 app.post('/todos', async (req, res) => {
   const { title, description } = req.body;
   try {
-    const result = await db.query(
+    const result = await client.query(
       'INSERT INTO todos (title, description) VALUES ($1, $2) RETURNING *',
       [title, description]
     );
@@ -46,7 +47,7 @@ app.post('/todos', async (req, res) => {
 // Get all todos
 app.get('/todos', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM todos');
+    const result = await client.query('SELECT * FROM todos');
     res.json(result.rows);
   } catch (err) {
     console.log('err:', err);
@@ -58,7 +59,7 @@ app.get('/todos', async (req, res) => {
 app.get('/todos/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await db.query('SELECT * FROM todos WHERE id = $1', [id]);
+    const result = await client.query('SELECT * FROM todos WHERE id = $1', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Todo not found' });
     }
@@ -73,7 +74,7 @@ app.put('/todos/:id', async (req, res) => {
   const { id } = req.params;
   const { title, description } = req.body;
   try {
-    const result = await db.query(
+    const result = await client.query(
       'UPDATE todos SET title = $1, description = $2 WHERE id = $3 RETURNING *',
       [title, description, id]
     );
@@ -90,7 +91,7 @@ app.put('/todos/:id', async (req, res) => {
 app.delete('/todos/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await db.query('DELETE FROM todos WHERE id = $1 RETURNING *', [id]);
+    const result = await client.query('DELETE FROM todos WHERE id = $1 RETURNING *', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Todo not found' });
     }
@@ -100,8 +101,11 @@ app.delete('/todos/:id', async (req, res) => {
   }
 });
 
-// Start server
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+createDatabaseIfNotExists().then(() => {
+  // Start server
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });
+

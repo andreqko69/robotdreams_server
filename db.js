@@ -1,11 +1,26 @@
 require('dotenv').config();
 
-const { Pool } = require('pg');
+const { Client } = require('pg');
 
-const pool = new Pool({
+// PostgreSQL client setup
+const client = new Client({
   connectionString: process.env.DATABASE_URL,
+  ssl: false,
 });
 
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-};
+client.connect()
+  .then(async () => {
+    console.log('Connected to todos_db')
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS todos (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT
+      );
+    `);
+
+  })
+  .catch(err => console.error('Connection error', err.stack));
+
+module.exports = client;
