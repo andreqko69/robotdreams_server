@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const createDatabaseIfNotExists = require('./admin-db');
+const { Client } = require('pg');
 
 async function startUp() {
   await createDatabaseIfNotExists();
